@@ -134,9 +134,10 @@ projects:
   - name: agent-mesh
     description: >-
       Fleet-native agent orchestration for OpenCode. 11 MCP tools, P2P
-      messaging, 100+ premade agents. MIT, local-first, no cloud, no
-      telemetry. Shipped v0.5.0 (51/51 tests).
-    url: https://github.com/johnmwhitman/agent-mesh
+      messaging, premade agent library. MIT, local-first, no cloud, no
+      telemetry. Shipped v0.5.0 (51/51 tests). Repo is private during
+      launch prep; the product is live at meshfleet.app.
+    url: https://meshfleet.app
     roles: [Author, Maintainer]
     startDate: '2026-03'
   - name: Meshfleet
