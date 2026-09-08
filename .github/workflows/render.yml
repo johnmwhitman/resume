@@ -16,17 +16,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.12'
-
-      - name: Install PyYAML + Jinja2
-        run: pip install pyyaml jinja2
-
-      - name: Render resume.yaml → index.html
-        run: python scripts/render.py resume.yaml docs/index.html
-
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
         with:
