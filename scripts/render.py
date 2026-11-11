@@ -314,16 +314,12 @@ def build_schema(r):
         "sameAs": same_as,
         "knowsAbout": [k for k in r.get("ai_context", {}).get("keywords", [])],
     }
-    return json.dumps(schema, indent=2)
+    return json.dumps(schema, indent=2, ensure_ascii=False)
 
 
-def main():
-    if len(sys.argv) != 3:
-        print("Usage: render.py resume.yaml output.html", file=sys.stderr)
-        sys.exit(1)
-
-    with open(sys.argv[1]) as f:
-        r = yaml.safe_load(f)
+def render_resume(r, updated_at=None):
+    if updated_at is None:
+        updated_at = datetime.date.today().isoformat()
 
     basics = r.get("basics", {})
     name = basics.get("name", "John Whitman")
@@ -368,11 +364,23 @@ def main():
         publications_html=publications_html,
         interests_html=interests_html,
         ai_context_html=ai_context_html,
-        updated_at=datetime.date.today().isoformat(),
+        updated_at=updated_at,
     )
+    return html
+
+
+def main():
+    if len(sys.argv) != 3:
+        print("Usage: render.py resume.yaml output.html", file=sys.stderr)
+        sys.exit(1)
+
+    with open(sys.argv[1], "r", encoding="utf-8") as f:
+        r = yaml.safe_load(f)
+
+    html = render_resume(r)
 
     Path(sys.argv[2]).parent.mkdir(parents=True, exist_ok=True)
-    with open(sys.argv[2], "w") as f:
+    with open(sys.argv[2], "w", encoding="utf-8") as f:
         f.write(html)
     print(f"OK: wrote {sys.argv[2]} ({len(html)} bytes)")
 
