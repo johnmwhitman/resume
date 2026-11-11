@@ -147,7 +147,7 @@ def escape(s):
 def fmt_date(d):
     if not d:
         return ""
-    return d  # YYYY-MM or YYYY; render as-is
+    return escape(str(d))  # YYYY-MM or YYYY; render as-is
 
 
 def render_profiles(profiles):
@@ -296,7 +296,7 @@ def render_ai_context(ai):
 
 def build_schema(r):
     """Build a schema.org Person node from the resume basics + ai_context."""
-    basics = r.get("basics", {})
+    basics = r.get("basics", {}) or {}
     profiles = basics.get("profiles", [])
     same_as = [p.get("url", "") for p in profiles if p.get("url")]
 
@@ -312,32 +312,36 @@ def build_schema(r):
         "jobTitle": basics.get("label", ""),
         "email": basics.get("email", ""),
         "sameAs": same_as,
-        "knowsAbout": [k for k in r.get("ai_context", {}).get("keywords", [])],
+        "knowsAbout": [k for k in (r.get("ai_context", {}) or {}).get("keywords", [])],
     }
-    return json.dumps(schema, indent=2)
+    return json.dumps(schema, indent=2).replace("<", "\\u003c").replace(">", "\\u003e").replace("&", "\\u0026")
 
 
-def main():
-    if len(sys.argv) != 3:
-        print("Usage: render.py resume.yaml output.html", file=sys.stderr)
-        sys.exit(1)
+def render_resume(r, updated_at=None):
+    if updated_at is None:
+        updated_at = datetime.date.today().isoformat()
 
-    with open(sys.argv[1]) as f:
-        r = yaml.safe_load(f)
+    basics = r.get("basics", {}) or {}
+    raw_name = basics.get("name", "John Whitman")
+    raw_label = basics.get("label", "")
+    raw_email = basics.get("email", "")
+    raw_url = basics.get("url", "https://hool.dev/about/")
 
-    basics = r.get("basics", {})
-    name = basics.get("name", "John Whitman")
-    label = basics.get("label", "")
-    email = basics.get("email", "")
-    loc = basics.get("location", {})
-    city = loc.get("city", "")
-    region = loc.get("region", "")
-    country = loc.get("countryCode", "")
+    loc = basics.get("location", {}) or {}
+    city = escape(loc.get("city", ""))
+    region = escape(loc.get("region", ""))
+    country = escape(loc.get("countryCode", ""))
+
+    name = escape(raw_name)
+    label = escape(raw_label)
+    email = escape(raw_email)
+    canonical_url = escape(raw_url)
 
     location_str = ""
     if city or region:
         bits = [b for b in [city, region, country] if b]
-        location_str = f'<p style="margin:8px 0;color:var(--muted)">{" · ".join(bits)} · <a href="mailto:{email}">{email}</a></p>'
+        email_link = f' · <a href="mailto:{email}">{email}</a>' if email else ""
+        location_str = f'<p style="margin:8px 0;color:var(--muted)">{" · ".join(bits)}{email_link}</p>'
 
     profiles_html = render_profiles(basics.get("profiles", []))
     work_html = render_work(r.get("work", []))
@@ -347,17 +351,16 @@ def main():
     interests_html = render_interests(r.get("interests", []))
     ai_context_html = render_ai_context(r.get("ai_context", {}))
 
-    meta_description = (
-        f"{name} is a {label}. " + (r.get("ai_context", {}) or {}).get("narrative", "")[:140]
-    ).strip()
+    narrative_snip = (r.get("ai_context", {}) or {}).get("narrative", "")[:140]
+    meta_description = escape(f"{raw_name} is a {raw_label}. {narrative_snip}".strip())
 
     schema_json = build_schema(r)
 
-    html = HTML_TEMPLATE.format(
+    return HTML_TEMPLATE.format(
         name=name,
         label=label,
         email=email,
-        canonical_url=basics.get("url", "https://hool.dev/about/"),
+        canonical_url=canonical_url,
         meta_description=meta_description,
         schema_json=schema_json,
         profiles_html=profiles_html,
@@ -368,8 +371,19 @@ def main():
         publications_html=publications_html,
         interests_html=interests_html,
         ai_context_html=ai_context_html,
-        updated_at=datetime.date.today().isoformat(),
+        updated_at=escape(updated_at),
     )
+
+
+def main():
+    if len(sys.argv) != 3:
+        print("Usage: render.py resume.yaml output.html", file=sys.stderr)
+        sys.exit(1)
+
+    with open(sys.argv[1]) as f:
+        r = yaml.safe_load(f)
+
+    html = render_resume(r)
 
     Path(sys.argv[2]).parent.mkdir(parents=True, exist_ok=True)
     with open(sys.argv[2], "w") as f:
