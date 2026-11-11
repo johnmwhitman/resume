@@ -317,13 +317,9 @@ def build_schema(r):
     return json.dumps(schema, indent=2)
 
 
-def main():
-    if len(sys.argv) != 3:
-        print("Usage: render.py resume.yaml output.html", file=sys.stderr)
-        sys.exit(1)
-
-    with open(sys.argv[1]) as f:
-        r = yaml.safe_load(f)
+def render(r, updated_at=None):
+    if updated_at is None:
+        updated_at = datetime.date.today().isoformat()
 
     basics = r.get("basics", {})
     name = basics.get("name", "John Whitman")
@@ -353,7 +349,7 @@ def main():
 
     schema_json = build_schema(r)
 
-    html = HTML_TEMPLATE.format(
+    return HTML_TEMPLATE.format(
         name=name,
         label=label,
         email=email,
@@ -368,8 +364,23 @@ def main():
         publications_html=publications_html,
         interests_html=interests_html,
         ai_context_html=ai_context_html,
-        updated_at=datetime.date.today().isoformat(),
+        updated_at=updated_at,
     )
+
+
+render_html = render
+render_resume = render
+
+
+def main():
+    if len(sys.argv) != 3:
+        print("Usage: render.py resume.yaml output.html", file=sys.stderr)
+        sys.exit(1)
+
+    with open(sys.argv[1]) as f:
+        r = yaml.safe_load(f)
+
+    html = render(r)
 
     Path(sys.argv[2]).parent.mkdir(parents=True, exist_ok=True)
     with open(sys.argv[2], "w") as f:
