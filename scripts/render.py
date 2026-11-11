@@ -98,22 +98,11 @@ footer {{ margin-top: 64px; padding-top: 24px; border-top: 1px solid var(--line)
 
 {basics_location}
 
-<section>
-<h2>Experience</h2>
 {work_html}
-</section>
 
-<section>
-<h2>Selected Projects</h2>
 {projects_html}
-</section>
 
-<section>
-<h2>Skills</h2>
-<div class="skills">
 {skills_html}
-</div>
-</section>
 
 {publications_html}
 
@@ -168,7 +157,7 @@ def render_profiles(profiles):
 def render_work(work):
     if not work:
         return ""
-    out = []
+    out = ['<section><h2>Experience</h2>']
     for w in work:
         name = escape(w.get("name", ""))
         pos = escape(w.get("position", ""))
@@ -194,13 +183,14 @@ def render_work(work):
             f'<p>{summary}</p>'
             f'{h_html}'
         )
+    out.append("</section>")
     return "".join(out)
 
 
 def render_projects(projects):
     if not projects:
         return ""
-    out = []
+    out = ['<section><h2>Selected Projects</h2>']
     for p in projects:
         name = escape(p.get("name", ""))
         desc = escape(p.get("description", ""))
@@ -222,19 +212,21 @@ def render_projects(projects):
             f'<p>{desc}</p>'
             f'<div style="margin-top:8px">{kw_html}</div>'
         )
+    out.append("</section>")
     return "".join(out)
 
 
 def render_skills(skills):
     if not skills:
         return ""
-    out = []
+    out = ['<section><h2>Skills</h2><div class="skills">']
     for s in skills:
         name = escape(s.get("name", ""))
         level = escape(s.get("level", ""))
         keywords = s.get("keywords", [])
         kw_html = ", ".join(escape(k) for k in keywords)
         out.append(f'<div class="skill"><b>{name}</b>{" · " + level if level else ""}<br><span class="meta">{kw_html}</span></div>')
+    out.append("</div></section>")
     return "".join(out)
 
 
