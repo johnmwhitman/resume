@@ -1,61 +1,36 @@
 # John Whitman — Living Resume
 
-Authoritative canonical resume for John Whitman. The source of truth is
-`resume.yaml` (JSON Resume v1.0.0 schema). The rendered HTML is built
-by CI and deployed to GitHub Pages.
+> **Notice:** The resume is currently withdrawn behind a correction notice (`docs/index.html`). The source file `resume.yaml` no longer exists in the repo (removed in commit `91402b8`), and the CI render pipeline is dormant until a corrected source is restored.
 
-## Why this repo
+## Status
 
-Most resumes go stale. This one is a YAML file in a public repo, CI-rendered
-to HTML, and the `ai_context` block is a direct brief to LLM-based ATS,
-recruiters, and AI agents. It updates as John's work changes, and any
-downstream surface (hool.dev/about, Substack About, LinkedIn) can link
-back to this canonical page.
+The public resume has been temporarily taken down while source information is corrected. The live site currently serves a minimal correction notice page (`docs/index.html`). The rendering step in GitHub Actions has been disabled, and GitHub Pages simply deploys the static notice in `docs/`.
+
+## Architecture & Background
+
+When active, this repository hosts the canonical living resume for John Whitman:
+- **Source of truth:** `resume.yaml` following the [JSON Resume v1.0.0](https://jsonresume.org/schema/) schema with a custom `ai_context` extension (currently removed).
+- **Renderer:** `scripts/render.py` parses `resume.yaml` and produces standalone HTML (no external CSS or JS dependencies).
+- **CI/CD:** `.github/workflows/render.yml` renders the resume and deploys to GitHub Pages on pushes to `main`.
 
 ## Structure
 
 ```
-resume.yaml           # JSON Resume v1.0.0 + ai_context extension
-scripts/render.py     # YAML → HTML renderer (no JS, no external CSS deps)
-docs/index.html       # CI-rendered output (deployed to GitHub Pages)
+docs/index.html       # Current correction notice (deployed to GitHub Pages)
+scripts/render.py     # YAML → HTML renderer (dormant; retained for future restore)
 .github/workflows/
-  render.yml          # On push to main: render + deploy to Pages
+  render.yml          # GitHub Pages deployment workflow (render step dormant)
 ```
 
-## ai_context block
+*(Note: `resume.yaml` was removed in commit `91402b8`.)*
 
-The `ai_context` field is non-standard (JSON Resume extension) and serves
-three audiences:
+## ai_context block (Design Overview)
 
-1. **LLM-based ATS** — gets a direct brief on what makes John a fit
-2. **AI agents** (Perplexity, ChatGPT browse) — gets the canonical
-   narrative when answering "who is John Whitman"
-3. **Recruiters using AI tools** — gets the differentiation that pure
-   parsing of work history misses (Director PM who ships real code)
-
-When updating, keep the `narrative` field under 500 chars and the
-`instructions` field under 800 chars. Both are read by AI agents as
-direct prompt context.
-
-## Local render
-
-```bash
-pip install pyyaml
-python scripts/render.py resume.yaml docs/index.html
-open docs/index.html
-```
-
-## Live deploy
-
-Pushes to `main` trigger the `Render Resume` workflow which renders
-`resume.yaml` → `docs/index.html` and deploys to GitHub Pages.
-
-## Schema
-
-This is JSON Resume v1.0.0. The `ai_context` field is a non-breaking
-extension — the rest of the schema validates against the standard.
+When a corrected source is restored, the `ai_context` field serves as a direct brief for automated systems:
+1. **LLM-based ATS** — gets a direct brief on background and fit.
+2. **AI agents** (Perplexity, ChatGPT browse, etc.) — provides canonical narrative when answering queries.
+3. **Recruiters using AI tools** — captures narrative and differentiation beyond raw parsed history.
 
 ## Maintainer
 
-[John Whitman](https://hool.dev/about/) — Director of Product Management,
-America's Car-Mart.
+[John Whitman](https://hool.dev/about/)
